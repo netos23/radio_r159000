@@ -24,47 +24,50 @@ class RadioScreenWidget extends ElementaryWidget<IRadioScreenWidgetModel> {
       ),
       body: SafeArea(
         child: Center(
-          child: Column(
-            children: [
-              RadioButton(
-                soundData: wm.soundStream,
-                beginBroadcast: wm.beginBroadcast,
-                endBroadcast: wm.endBroadcast,
-              ),
-              const SizedBox(
-                height: 20,
-              ),
-              Expanded(
-                child: EntityStateNotifierBuilder(
-                  listenableEntityState: wm.clientsState,
-                  builder: (context, data) {
-                    if (data == null || data.isEmpty) {
-                      return const Center(
-                        child: Text(
-                          'Здесь будут появляться данные о людях '
-                          'подключенных к одной радиосети',
+          child: Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: Column(
+              children: [
+                RadioButton(
+                  soundData: wm.soundStream,
+                  beginBroadcast: wm.beginBroadcast,
+                  endBroadcast: wm.endBroadcast,
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                Expanded(
+                  child: EntityStateNotifierBuilder(
+                    listenableEntityState: wm.clientsState,
+                    builder: (context, data) {
+                      if (data == null || data.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            'Здесь будут появляться данные о людях '
+                            'подключенных к одной радиосети',
+                          ),
+                        );
+                      }
+
+                      return ListView.separated(
+                        itemCount: data.length,
+                        itemBuilder: (context, index) {
+                          final client = data[index];
+                          return RadioClientTile(
+                            name: client.name,
+                            signalColor: wm.getSignalColor(client.signal),
+                            signal: client.signal,
+                          );
+                        },
+                        separatorBuilder: (_, __) => const SizedBox(
+                          height: 10,
                         ),
                       );
-                    }
-
-                    return ListView.separated(
-                      itemCount: data.length,
-                      itemBuilder: (context, index) {
-                        final client = data[index];
-                        return RadioClientTile(
-                          name: client.name,
-                          signalColor: wm.getSignalColor(client.signal),
-                          signal: client.signal,
-                        );
-                      },
-                      separatorBuilder: (_, __) => const SizedBox(
-                        height: 10,
-                      ),
-                    );
-                  },
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -97,6 +100,7 @@ class RadioClientTile extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(24),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Flexible(
             child: Text(name),
@@ -105,6 +109,12 @@ class RadioClientTile extends StatelessWidget {
             child: MuteButton(
               mute: mute,
               onMute: onMute,
+            ),
+          ),
+          Flexible(
+            child: SignalInfo(
+              signalColor: signalColor,
+              signal: signal,
             ),
           ),
         ],
@@ -125,13 +135,13 @@ class MuteButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IconButton(
-      style: IconButton.styleFrom(
-        backgroundColor: mute ? Colors.green : Colors.red,
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: !mute ? Colors.green : Colors.red,
       ),
       onPressed: onMute,
-      icon: Icon(
-        mute ? Icons.mic : Icons.mic_off,
+      child: Icon(
+        !mute ? Icons.mic : Icons.mic_off,
       ),
     );
   }
@@ -215,6 +225,7 @@ class _RadioButtonState extends State<RadioButton>
               final data = snapshot.data ?? [];
               final maxRadius = data.isEmpty ? 0 : data.reduce(min);
               return AnimatedContainer(
+                key: Key(maxRadius.toString()),
                 duration: const Duration(
                   milliseconds: 100,
                 ),
@@ -223,6 +234,7 @@ class _RadioButtonState extends State<RadioButton>
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
+                      Colors.green,
                       Theme.of(context).colorScheme.primary.withOpacity(0.7),
                       Colors.transparent
                     ],
