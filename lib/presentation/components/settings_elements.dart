@@ -110,3 +110,40 @@ class SettingsCheckbox extends StatelessWidget {
     );
   }
 }
+
+
+class OutlineTextField extends StatelessWidget {
+  const OutlineTextField({
+    Key? key,
+    required this.controller,
+    required this.hint,
+    required this.textInputType,
+  }) : super(key: key);
+
+  final TextEditingController controller;
+  final String hint;
+  final TextInputType textInputType;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      keyboardType: textInputType,
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.all(15),
+        enabledBorder: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(15),
+          ),
+        ),
+        border: const OutlineInputBorder(
+          borderRadius: BorderRadius.all(
+            Radius.circular(15),
+          ),
+        ),
+        hintText: hint,
+      ),
+    );
+  }
+}
+

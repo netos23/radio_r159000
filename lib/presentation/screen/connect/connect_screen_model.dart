@@ -23,7 +23,7 @@ class ConnectScreenModel extends ElementaryModel {
     }
   }
 
-  Future<bool> pingServer(String customIp) async {
+  Future<String> getIp(String customIp) async {
     try {
       var ip = customIp;
 
@@ -31,7 +31,16 @@ class ConnectScreenModel extends ElementaryModel {
         ip = (await NetworkInfo().getWifiGatewayIP())!;
       }
 
-      final res = await http.get(Uri.parse('http://$ip:3000/ping'));
+      return ip;
+    } catch (e) {
+      handleError(e);
+      rethrow;
+    }
+  }
+
+  Future<bool> pingServer(String targetIp) async {
+    try {
+      final res = await http.get(Uri.parse('http://$targetIp:3000/ping'));
       return res.body == 'ok';
     } catch (e) {
       handleError(e);

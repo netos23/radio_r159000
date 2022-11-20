@@ -6,3 +6,4 @@ const beginRadio = '/begin';
 const dataRadio = '/data';
 const endRadio = '/end';
 const errorRadio = '/error';
+const location = '/location';

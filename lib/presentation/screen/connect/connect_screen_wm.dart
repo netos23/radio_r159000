@@ -2,6 +2,8 @@ import 'package:elementary/elementary.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:radio_r159000/presentation/navigation/navigation.dart';
+import 'package:radio_r159000/presentation/screen/connect/model/client_configuration.dart';
+import 'package:uuid/uuid.dart';
 import 'connect_screen_model.dart';
 import 'connect_screen_widget.dart';
 
@@ -17,6 +19,8 @@ abstract class IConnectScreenWidgetModel extends IWidgetModel {
   TextEditingController get passwordController;
 
   TextEditingController get ipController;
+
+  TextEditingController get nameController;
 
   void connect();
 
@@ -85,8 +89,20 @@ class ConnectScreenWidgetModel
       }
     }
 
+    final String targetIp;
     try {
-      final res = await model.pingServer(ip);
+      targetIp = await model.getIp(ip);
+    } catch (_) {
+      navigation.displayErrorSnackBar(
+        'Не удалось получить или проверить IP'
+        'Проверьте данные или попробуйте позже',
+      );
+      enableConnectionState.content(true);
+      return;
+    }
+
+    try {
+      final res = await model.pingServer(targetIp);
       if (!res) {
         navigation.displayErrorSnackBar(
           'Возникла ошибка'
@@ -103,10 +119,20 @@ class ConnectScreenWidgetModel
       return;
     }
 
+    var name = nameController.text;
+
+    if (name.isEmpty) {
+      name = const Uuid().v4();
+    }
+
     enableConnectionState.content(true);
     navigation.routeReplacementTo(
       RouteBundle(
-        route: Routes.radio,
+        route: Routes.radioClient,
+        data: ClientConfiguration(
+          name: name,
+          ip: targetIp,
+        ),
       ),
     );
   }
@@ -151,6 +177,9 @@ class ConnectScreenWidgetModel
   final TextEditingController ssidController = TextEditingController();
 
   @override
+  final TextEditingController nameController = TextEditingController();
+
+  @override
   final EntityStateNotifier<bool> enableConnectionState = EntityStateNotifier();
 
   @override
@@ -161,6 +190,7 @@ class ConnectScreenWidgetModel
     ssidController.dispose();
     passwordController.dispose();
     ipController.dispose();
+    nameController.dispose();
     super.dispose();
   }
 }

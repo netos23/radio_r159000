@@ -7,7 +7,7 @@ import 'package:radio_r159000/feature/transport/transport_base.dart';
 import 'package:radio_r159000/feature/common/constant.dart' as names;
 
 class ServerBase implements TransportBase {
-  final HttpServer server;
+  late final HttpServer _server;
   late final StreamSubscription<HttpRequest> _subscription;
   final List<WebSocket> _clients = [];
   final Map<WebSocket, Set<String>> _names = {};
@@ -18,17 +18,19 @@ class ServerBase implements TransportBase {
   @override
   Stream<EventPocket> get eventStream => _eventController.stream;
 
-  ServerBase(this.server) {
-    _init();
-  }
+  ServerBase();
 
-  Future<void> _init() async {
-    _subscription = server.listen(_handleRequests);
+  @override
+  Future<void> init() async {
+    _server = await HttpServer.bind(
+      InternetAddress('0.0.0.0'),
+      3000,
+    );
+    _subscription = _server.listen(_handleRequests);
   }
 
   Future<void> _handleRequests(HttpRequest request) async {
     if (request.uri.path == names.ping) {
-
       request.response.write('ok');
       await request.response.close();
     }
@@ -75,11 +77,13 @@ class ServerBase implements TransportBase {
     }
   }
 
+  @override
   Future<void> dispose() async {
     for (final clientsSubscription in _clientsSubscriptions) {
       await clientsSubscription.cancel();
     }
     await _subscription.cancel();
     await _eventController.close();
+    await _server.close();
   }
 }

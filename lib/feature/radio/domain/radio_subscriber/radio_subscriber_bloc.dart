@@ -74,10 +74,20 @@ class RadioSubscriberBloc extends Bloc<RadioEvent, RadioSubscriberState> {
 
   Stream<Uint8List> get dataStream => stream.map(_mapToByteList);
 
+  Stream<Uint8List> get rawDataStream => stream.map(_mapToRawByteList);
+
   Stream<String?> get correspondentStream => stream.map(_mapCorrespondent);
 
   Uint8List _mapToByteList(RadioSubscriberState event) {
     if (event is RadioSubscriberData && event.correspondent != callSign) {
+      return event.data;
+    }
+
+    return Uint8List(0);
+  }
+
+  Uint8List _mapToRawByteList(RadioSubscriberState event) {
+    if (event is RadioSubscriberData) {
       return event.data;
     }
 

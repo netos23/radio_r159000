@@ -1,8 +1,10 @@
 import 'package:elementary/elementary.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:radio_r159000/main.dart';
 import 'package:radio_r159000/presentation/navigation/navigation.dart';
 import 'package:radio_r159000/presentation/screen/host/models/wifi_info.dart';
+import 'package:uuid/uuid.dart';
 import 'host_screen_model.dart';
 import 'host_screen_widget.dart';
 
@@ -14,6 +16,8 @@ abstract class IHostScreenWidgetModel extends IWidgetModel {
   EntityStateNotifier<bool> get showPasswordState;
 
   EntityStateNotifier<String> get ipState;
+
+  TextEditingController get nameController;
 
   void switchHotspot(bool value);
 
@@ -70,6 +74,7 @@ class HostScreenWidgetModel
     wifiState.dispose();
     ipState.dispose();
     showPasswordState.dispose();
+    nameController.dispose();
     super.dispose();
   }
 
@@ -120,9 +125,16 @@ class HostScreenWidgetModel
 
   @override
   void create() {
+    var name = nameController.text;
+
+    if (name.isEmpty) {
+      name = const Uuid().v4();
+    }
+
     navigation.routeReplacementTo(
       RouteBundle(
-        route: Routes.radio,
+        route: Routes.radioServer,
+        data: name,
       ),
     );
   }
@@ -132,4 +144,7 @@ class HostScreenWidgetModel
     final state = showPasswordState.value?.data ?? false;
     showPasswordState.content(!state);
   }
+
+  @override
+  final TextEditingController nameController = TextEditingController();
 }

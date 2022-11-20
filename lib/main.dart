@@ -15,10 +15,11 @@ import 'package:radio_r159000/feature/transport/client_base.dart';
 import 'package:radio_r159000/feature/transport/server_base.dart';
 import 'package:radio_r159000/presentation/app/app.dart';
 import 'package:radio_r159000/presentation/app/app_dependencies.dart';
+import 'package:radio_r159000/presentation/screen/radio/components/waves.dart';
 import 'package:radio_r159000/util/logger.dart';
 import 'package:uuid/uuid.dart';
 
-const uuid = Uuid();
+
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,8 +37,8 @@ Future<void> main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class MyAppTest extends StatelessWidget {
+  const MyAppTest({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -92,7 +93,7 @@ class ClientScreen extends StatefulWidget {
 }
 
 class _ClientScreenState extends State<ClientScreen> {
-  final callId = uuid.v4();
+  final callId = '';
   late final RadioSubscriberBloc subscriber = RadioSubscriberBloc(callId);
   late final RadioBroadcasterBloc broadcaster = RadioBroadcasterBloc(callId);
   late final WebSocket socket;
@@ -137,13 +138,12 @@ class _ClientScreenState extends State<ClientScreen> {
     super.initState();
     NetworkInfo().getWifiGatewayIP().then((value) async {
       logger.i(value);
-      socket = await WebSocket.connect('ws://$value:3000/ws');
       /*socket.cast<List<int>>().transform(utf8.decoder).listen((e) {
         print('begin pocket:');
         print(e);
         print('end pocket:');
       });*/
-      clientBase = ClientBase(socket);
+      clientBase = ClientBase('ws://$value:3000/ws');
       client = RadioClient(
         callSign: callId,
         radioBroadcaster: broadcaster,
@@ -178,7 +178,7 @@ class ServerScreen extends StatefulWidget {
 }
 
 class _ServerScreenState extends State<ServerScreen> {
-  final callId = uuid.v4();
+  final callId = '';
   late final RadioSubscriberBloc subscriber = RadioSubscriberBloc(callId);
   late final RadioBroadcasterBloc broadcaster = RadioBroadcasterBloc(callId);
   late final HttpServer socket;
@@ -233,11 +233,7 @@ class _ServerScreenState extends State<ServerScreen> {
   }
 
   Future<void> _init() async {
-    socket = await HttpServer.bind(
-      InternetAddress('0.0.0.0'),
-      3000,
-    );
-    clientBase = ServerBase(socket);
+    clientBase = ServerBase();
     client = RadioServer(
       callSign: callId,
       radioBroadcaster: broadcaster,

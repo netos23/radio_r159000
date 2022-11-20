@@ -1,107 +1,104 @@
-/*
-import 'dart:math' as math;
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-void main() => runApp(MyApp());
 
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Wave Animation',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: CircleWaveRoute(),
-    );
-  }
-}
+class WavesIndicator extends AnimatedWidget {
+  const WavesIndicator({
+    required this.color,
+    required this.child,
+    this.opacityStep = 0.05,
+    this.radiusStep = 10,
+    this.stroke = 2,
+    required Animation<double> listenable,
+    super.key,
+  }) : super(listenable: listenable);
 
-class CircleWaveRoute extends StatefulWidget {
-  @override
-  _CircleWaveRouteState createState() => _CircleWaveRouteState();
-}
-
-class _CircleWaveRouteState extends State<CircleWaveRoute>
-    with SingleTickerProviderStateMixin {
-  double waveRadius = 0.0;
-  double waveGap = 10.0;
-  Animation<double> _animation;
-  AnimationController controller;
+  final Widget child;
+  final Color color;
+  final double radiusStep;
+  final double opacityStep;
+  final double stroke;
 
   @override
-  void initState() {
-    super.initState();
-    controller = AnimationController(
-        duration: Duration(milliseconds: 1500), vsync: this);
-
-    controller.forward();
-
-    controller.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        controller.reset();
-      } else if (status == AnimationStatus.dismissed) {
-        controller.forward();
-      }
-    });
-  }
+  Animation<double> get listenable => super.listenable as Animation<double>;
 
   @override
   Widget build(BuildContext context) {
-    _animation = Tween(begin: 0.0, end: waveGap).animate(controller)
-      ..addListener(() {
-        setState(() {
-          waveRadius = _animation.value;
-        });
-      });
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: CustomPaint(
-        size: Size(double.infinity, double.infinity),
-        painter: CircleWavePainter(waveRadius),
+    return CustomPaint(
+      painter: CircleWavePainter(
+        color: color,
+        minRadius: listenable.value,
+        opacityStep: opacityStep,
+        radiusStep: radiusStep,
+        stroke: stroke,
+      ),
+      child: Center(
+        child: child,
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
   }
 }
 
 class CircleWavePainter extends CustomPainter {
-  final double waveRadius;
-  var wavePaint;
-  CircleWavePainter(this.waveRadius) {
-    wavePaint = Paint()
-      ..color = Colors.black
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.0
-      ..isAntiAlias = true;
-  }
+  final Color color;
+  final double radiusStep;
+  final double opacityStep;
+  final double stroke;
+  final double minRadius;
+
+  CircleWavePainter({
+    required this.color,
+    required this.minRadius,
+    required this.opacityStep,
+    required this.radiusStep,
+    required this.stroke,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
-    double centerX = size.width / 2.0;
-    double centerY = size.height / 2.0;
-    double maxRadius = hypot(centerX, centerY);
+    final rect = Offset.zero & size;
+    final center = rect.center;
+    final maxRadius = center.distance;
 
-    var currentRadius = waveRadius;
+    var currentRadius = minRadius;
+    var opacity = color.opacity;
+
     while (currentRadius < maxRadius) {
-      canvas.drawCircle(Offset(centerX, centerY), currentRadius, wavePaint);
-      currentRadius += 10.0;
+      final paint = Paint()
+        ..color = color.withOpacity(opacity)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke
+        ..isAntiAlias = true;
+
+      canvas.drawCircle(center, currentRadius, paint);
+      currentRadius += radiusStep;
+      opacity -= opacityStep;
+      opacity = max(opacity, 0);
     }
   }
 
   @override
   bool shouldRepaint(CircleWavePainter oldDelegate) {
-    return oldDelegate.waveRadius != waveRadius;
+    return oldDelegate != this;
   }
 
-  double hypot(double x, double y) {
-    return math.sqrt(x * x + y * y);
-  }
-}*/
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CircleWavePainter &&
+          runtimeType == other.runtimeType &&
+          color == other.color &&
+          radiusStep == other.radiusStep &&
+          opacityStep == other.opacityStep &&
+          stroke == other.stroke &&
+          minRadius == other.minRadius;
+
+  @override
+  int get hashCode =>
+      color.hashCode ^
+      radiusStep.hashCode ^
+      opacityStep.hashCode ^
+      stroke.hashCode ^
+      minRadius.hashCode;
+}

@@ -27,19 +27,17 @@ class HostScreenWidget extends ElementaryWidget<IHostScreenWidgetModel> {
               vertical: 20,
               horizontal: 15,
             ),
-            child: Column(
+            child: ListView(
               children: [
-                Flexible(
-                  child: EntityStateNotifierBuilder(
-                    listenableEntityState: wm.hotspotState,
-                    builder: (context, data) {
-                      return SettingsCheckbox(
-                        title: 'Точка доступа',
-                        value: data,
-                        onChanged: wm.switchHotspot,
-                      );
-                    },
-                  ),
+                EntityStateNotifierBuilder(
+                  listenableEntityState: wm.hotspotState,
+                  builder: (context, data) {
+                    return SettingsCheckbox(
+                      title: 'Точка доступа',
+                      value: data,
+                      onChanged: wm.switchHotspot,
+                    );
+                  },
                 ),
                 _buildWifiInfo(wm),
                 const SizedBox(height: 20),
@@ -52,11 +50,15 @@ class HostScreenWidget extends ElementaryWidget<IHostScreenWidgetModel> {
                   },
                 ),
                 const SizedBox(height: 20),
-                Flexible(
-                  child: StartupCard(
-                    title: 'Создать',
-                    onTap: wm.create,
-                  ),
+                OutlineTextField(
+                  controller: wm.nameController,
+                  hint: 'Имя',
+                  textInputType: TextInputType.name,
+                ),
+                const SizedBox(height: 20),
+                StartupCard(
+                  title: 'Создать',
+                  onTap: wm.create,
                 ),
               ],
             ),

@@ -31,8 +31,9 @@ abstract class RadioHandler {
     required this.callSign,
     required this.radioBroadcaster,
     required this.radioSubscriber,
-  }) {
-    // logger.d('setup client');
+  });
+
+  void init(){
     _eventSubscription = transportBase.eventStream
         .where(_filterReceivedEvents)
         .map(mapRadioEvents)
@@ -43,9 +44,9 @@ abstract class RadioHandler {
         .where(_filterBroadcastEvents)
         .cast<RadioEvent>()
         .listen(
-          radioSubscriber.add,
-          onError: handleBroadcastErrors,
-        );
+      radioSubscriber.add,
+      onError: handleBroadcastErrors,
+    );
   }
 
   bool _filterBroadcastEvents(RadioEvent? event) =>
