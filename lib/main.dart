@@ -12,13 +12,19 @@ import 'package:network_info_plus/network_info_plus.dart';
 import 'package:radio_r159000/feature/recorder/recorder.dart';
 import 'package:radio_r159000/feature/transport/client_base.dart';
 import 'package:radio_r159000/feature/transport/server_base.dart';
+import 'package:radio_r159000/presentation/app/app.dart';
+import 'package:radio_r159000/presentation/app/app_dependencies.dart';
 import 'package:radio_r159000/util/logger.dart';
 import 'package:uuid/uuid.dart';
 
 const uuid = Uuid();
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    const AppDependencies(
+      app: RadioApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
