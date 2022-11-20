@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:radio_r159000/presentation/navigation/navigation.dart';
+import 'package:radio_r159000/presentation/theme/extensions.dart';
 import 'package:radio_r159000/presentation/theme/theme.dart';
 
 class RadioApp extends StatelessWidget {
@@ -13,7 +14,18 @@ class RadioApp extends StatelessWidget {
       onGenerateRoute: GenerateRouter.generateRootRoute,
       scaffoldMessengerKey: navigation.scaffoldMessengerKey,
       navigatorKey: navigation.rootNavigationKey,
-      theme: appTheme,
+      theme: ThemeData(
+        appBarTheme: AppBarTheme(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          elevation: 0,
+          foregroundColor: Colors.black,
+
+        ),
+        colorScheme: colorScheme,
+        extensions: const [
+          ExtraColors(),
+        ],
+      ),
     );
   }
 }

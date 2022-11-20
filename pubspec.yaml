@@ -23,6 +23,9 @@ dependencies:
   uuid: ^3.0.7
   logger: ^1.1.0
   flutter_svg: ^1.1.6
+  wifi_iot: ^0.3.18
+  permission_handler: ^10.2.0
+  qr_flutter: ^4.0.0
 
 dev_dependencies:
   flutter_test:

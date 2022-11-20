@@ -18,6 +18,16 @@ class AppDependencies extends StatefulWidget {
 }
 
 class _AppDependenciesState extends State<AppDependencies> {
+
+  @override
+  void initState() {
+    super.initState();
+
+
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:radio_r159000/feature/audio_player/audio_player.dart';
 import 'package:radio_r159000/feature/radio/domain/radio_broadcaster/radio_broadcaster_bloc.dart';
 import 'package:radio_r159000/feature/radio/domain/radio_client.dart';
@@ -19,7 +20,14 @@ import 'package:uuid/uuid.dart';
 
 const uuid = Uuid();
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  Map<Permission, PermissionStatus> statuses = await [
+    Permission.location,
+    Permission.microphone,
+  ].request();
+
   runApp(
     const AppDependencies(
       app: RadioApp(),

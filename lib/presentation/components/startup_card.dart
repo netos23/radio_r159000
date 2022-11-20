@@ -5,12 +5,12 @@ class StartupCard extends StatelessWidget {
   const StartupCard({
     Key? key,
     required this.title,
-    required this.description,
+    this.description,
     this.onTap,
   }) : super(key: key);
 
   final String title;
-  final String description;
+  final String? description;
   final VoidCallback? onTap;
 
   @override
@@ -34,21 +34,24 @@ class StartupCard extends StatelessWidget {
               ),
             ),
             Expanded(
-              child: Tooltip(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  border: const Border.fromBorderSide(BorderSide()),
-                  borderRadius: const BorderRadius.all(Radius.circular(15)),
-                ),
-                padding: const EdgeInsets.all(33),
-                margin: const EdgeInsets.all(20),
-                message: description,
-                textAlign: TextAlign.center,
-                textStyle: TextStyle(
-                  color: Theme.of(context).extension<ExtraColors>()?.mainText,
-                ),
-                child: const Icon(
-                  Icons.info,
+              child: Visibility(
+                visible: description != null,
+                child: Tooltip(
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    border: const Border.fromBorderSide(BorderSide()),
+                    borderRadius: const BorderRadius.all(Radius.circular(15)),
+                  ),
+                  padding: const EdgeInsets.all(33),
+                  margin: const EdgeInsets.all(20),
+                  message: description ?? '',
+                  textAlign: TextAlign.center,
+                  textStyle: TextStyle(
+                    color: Theme.of(context).extension<ExtraColors>()?.mainText,
+                  ),
+                  child: const Icon(
+                    Icons.info,
+                  ),
                 ),
               ),
             ),

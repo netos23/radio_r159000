@@ -1,6 +1,6 @@
 import 'package:elementary/elementary.dart';
 import 'package:flutter/material.dart';
-import 'package:radio_r159000/presentation/screen/startup/components/startup_card.dart';
+import 'package:radio_r159000/presentation/components/startup_card.dart';
 import 'package:radio_r159000/presentation/theme/resourses.dart';
 import 'startup_screen_wm.dart';
 import 'package:flutter_svg/flutter_svg.dart';

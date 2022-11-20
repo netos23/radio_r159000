@@ -3,4 +3,6 @@ abstract class Routes {
 
   static const connect = '/connect';
   static const create = '/create';
+
+  static const radio = '/radio';
 }
