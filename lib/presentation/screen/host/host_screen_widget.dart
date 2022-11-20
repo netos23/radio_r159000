@@ -1,10 +1,8 @@
 import 'package:elementary/elementary.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:radio_r159000/presentation/components/startup_card.dart';
+import 'package:radio_r159000/presentation/components/settings_elements.dart';
 import 'host_screen_wm.dart';
-import 'package:radio_r159000/presentation/screen/host/models/wifi_info.dart';
 
 // TODO: cover with documentation
 /// Main widget for HostScreen module
@@ -92,11 +90,13 @@ class HostScreenWidget extends ElementaryWidget<IHostScreenWidgetModel> {
             EntityStateNotifierBuilder(
               listenableEntityState: wm.showPasswordState,
               builder: (context, obscure) {
-                final text = (obscure ?? false) ? data.password : '********';
+                final showText = obscure ?? false;
+                final text = showText ? data.password : '********';
                 return StartupCard(
                   title: 'password: $text',
                   description: 'Показать пароль',
                   onTap: wm.showPassword,
+                  icon: showText ? Icons.visibility_off : Icons.visibility,
                 );
               },
             ),
@@ -104,56 +104,5 @@ class HostScreenWidget extends ElementaryWidget<IHostScreenWidgetModel> {
         );
       },
     );
-  }
-}
-
-class SettingsCheckbox extends StatelessWidget {
-  const SettingsCheckbox({
-    Key? key,
-    required this.title,
-    this.value,
-    this.onChanged,
-  }) : super(key: key);
-  final String title;
-  final bool? value;
-  final ValueChanged<bool>? onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10.0,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 5,
-            child: Text(title),
-          ),
-          Expanded(
-            child: AnimatedSwitcher(
-              duration: const Duration(
-                milliseconds: 300,
-              ),
-              child: value == null
-                  ? const CupertinoActivityIndicator()
-                  : CupertinoSwitch(
-                      value: value ?? false,
-                      onChanged: onChanged,
-                    ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class SettingsInfo extends StatelessWidget {
-  const SettingsInfo({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container();
   }
 }

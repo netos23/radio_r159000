@@ -4,8 +4,9 @@ import 'dart:io';
 import 'package:radio_r159000/feature/transport/mapper.dart';
 import 'package:radio_r159000/feature/transport/model/event_pocket.dart';
 import 'package:radio_r159000/feature/transport/transport_base.dart';
+import 'package:radio_r159000/feature/common/constant.dart' as names;
 
-class ServerBase implements TransportBase{
+class ServerBase implements TransportBase {
   final HttpServer server;
   late final StreamSubscription<HttpRequest> _subscription;
   final List<WebSocket> _clients = [];
@@ -26,7 +27,12 @@ class ServerBase implements TransportBase{
   }
 
   Future<void> _handleRequests(HttpRequest request) async {
-    if (request.uri.path == '/ws') {
+    if (request.uri.path == names.ping) {
+
+      request.response.write('ok');
+      await request.response.close();
+    }
+    if (request.uri.path == names.ws) {
       // logger.d('Handle new connection');
 
       final socket = await WebSocketTransformer.upgrade(request);

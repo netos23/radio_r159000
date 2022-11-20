@@ -1,7 +1,6 @@
 import 'package:elementary/elementary.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:radio_r159000/feature/common/constant.dart';
 import 'package:radio_r159000/presentation/navigation/navigation.dart';
 import 'package:radio_r159000/presentation/screen/host/models/wifi_info.dart';
 import 'host_screen_model.dart';
@@ -108,6 +107,7 @@ class HostScreenWidgetModel
     try {
       await model.switchHotspot(!enabled);
       _initHotspotInfoState();
+      _getIp();
     } catch (_) {
       navigation.displayErrorSnackBar(
         enabled ? 'Неудалось выключить wifi' : 'Неудалось создать сеть wifi',

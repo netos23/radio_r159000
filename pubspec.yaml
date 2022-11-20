@@ -26,6 +26,7 @@ dependencies:
   wifi_iot: ^0.3.18
   permission_handler: ^10.2.0
   qr_flutter: ^4.0.0
+  http: ^0.13.5
 
 dev_dependencies:
   flutter_test:

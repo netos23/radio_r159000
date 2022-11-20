@@ -26,6 +26,7 @@ Future<void> main() async {
   Map<Permission, PermissionStatus> statuses = await [
     Permission.location,
     Permission.microphone,
+    Permission.camera,
   ].request();
 
   runApp(
