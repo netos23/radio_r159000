@@ -1,4 +1,21 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:radio_r159000/feature/audio_player/audio_player.dart';
+import 'package:radio_r159000/feature/radio/domain/radio_broadcaster/radio_broadcaster_bloc.dart';
+import 'package:radio_r159000/feature/radio/domain/radio_client.dart';
+import 'package:radio_r159000/feature/radio/domain/radio_handler.dart';
+import 'package:radio_r159000/feature/radio/domain/radio_server.dart';
+import 'package:radio_r159000/feature/radio/domain/radio_subscriber/radio_subscriber_bloc.dart';
+import 'package:network_info_plus/network_info_plus.dart';
+import 'package:radio_r159000/feature/recorder/recorder.dart';
+import 'package:radio_r159000/feature/transport/client_base.dart';
+import 'package:radio_r159000/feature/transport/server_base.dart';
+import 'package:radio_r159000/util/logger.dart';
+import 'package:uuid/uuid.dart';
+
+const uuid = Uuid();
 
 void main() {
   runApp(const MyApp());
@@ -7,109 +24,237 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
-        primarySwatch: Colors.blue,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      routes: {
+        '/': (_) => const MenuScreen(),
+        '/server': (_) => const ServerScreen(),
+        '/client': (_) => const ClientScreen(),
+      },
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+class MenuScreen extends StatelessWidget {
+  const MenuScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+          children: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed('/client');
+              },
+              child: const Text(
+                'client',
+              ),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pushNamed('/server');
+              },
+              child: const Text(
+                'server',
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+}
+
+class ClientScreen extends StatefulWidget {
+  const ClientScreen({Key? key}) : super(key: key);
+
+  @override
+  State<ClientScreen> createState() => _ClientScreenState();
+}
+
+class _ClientScreenState extends State<ClientScreen> {
+  final callId = uuid.v4();
+  late final RadioSubscriberBloc subscriber = RadioSubscriberBloc(callId);
+  late final RadioBroadcasterBloc broadcaster = RadioBroadcasterBloc(callId);
+  late final WebSocket socket;
+  late final RadioHandler client;
+  late final ClientBase clientBase;
+  late final AudioPlayer player;
+  late final Recorder recorder;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onLongPress: () async {
+                broadcaster.begin();
+                await recorder.startRecord();
+              },
+              onLongPressUp: () {
+                broadcaster.end();
+                recorder.stopRecorder();
+              },
+              child: Container(
+                color: Colors.amber,
+                padding: const EdgeInsets.all(100),
+                child: const Text('ping'),
+              ),
+            ),
+            const Center(
+              child: CircularProgressIndicator(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    NetworkInfo().getWifiGatewayIP().then((value) async {
+      logger.i(value);
+      socket = await WebSocket.connect('ws://$value:3000/ws');
+      /*socket.cast<List<int>>().transform(utf8.decoder).listen((e) {
+        print('begin pocket:');
+        print(e);
+        print('end pocket:');
+      });*/
+      clientBase = ClientBase(socket);
+      client = RadioClient(
+        callSign: callId,
+        radioBroadcaster: broadcaster,
+        radioSubscriber: subscriber,
+        transportBase: clientBase,
+      );
+      player = AudioPlayer(audioStream: subscriber.dataStream);
+      recorder = Recorder(sink: broadcaster.addData);
+      // client = RadioClient(bloc, socket);
+    });
+  }
+
+//10.136.61.210
+  //192.168.192.226
+  //255.255.255.0
+  @override
+  void dispose() {
+    super.dispose();
+    subscriber.close();
+    broadcaster.close();
+    client.dispose();
+    player.dispose();
+    socket.close();
+  }
+}
+
+class ServerScreen extends StatefulWidget {
+  const ServerScreen({Key? key}) : super(key: key);
+
+  @override
+  State<ServerScreen> createState() => _ServerScreenState();
+}
+
+class _ServerScreenState extends State<ServerScreen> {
+  final callId = uuid.v4();
+  late final RadioSubscriberBloc subscriber = RadioSubscriberBloc(callId);
+  late final RadioBroadcasterBloc broadcaster = RadioBroadcasterBloc(callId);
+  late final HttpServer socket;
+  late final RadioServer client;
+  late final ServerBase clientBase;
+  late final AudioPlayer player;
+  late final Recorder recorder;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onLongPress: () async {
+                broadcaster.begin();
+                await recorder.startRecord();
+              },
+              onLongPressUp: () {
+                broadcaster.end();
+                recorder.stopRecorder();
+              },
+              child: Container(
+                color: Colors.amber,
+                padding: const EdgeInsets.all(100),
+                child: const Text('ping'),
+              ),
+            ),
+            const Center(child: CircularProgressIndicator()),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    subscriber.close();
+    broadcaster.close();
+    client.dispose();
+    player.dispose();
+    socket.close();
+  }
+
+  Future<void> _init() async {
+    socket = await HttpServer.bind(
+      InternetAddress('0.0.0.0'),
+      3000,
+    );
+    clientBase = ServerBase(socket);
+    client = RadioServer(
+      callSign: callId,
+      radioBroadcaster: broadcaster,
+      radioSubscriber: subscriber,
+      transportBase: clientBase,
+    );
+    player = AudioPlayer(audioStream: subscriber.dataStream);
+    recorder = Recorder(sink: broadcaster.addData);
+    /*socket.listen((HttpRequest req) async {
+      if (req.uri.path == '/ws') {
+        var socket = await WebSocketTransformer.upgrade(req);
+        socket.listen((e) {
+          print('begin pocket:');
+          print(e);
+          print('end pocket:');
+        });
+        connections.add(socket);
+      }
+    });*/
+    /*socket = await ServerSocket.bind(
+      InternetAddress('0.0.0.0'),
+      3000,
+    );
+
+    print('start server 0.0.0.0');
+    socket.listen((connection) {
+      connection.cast<List<int>>().transform(utf8.decoder).listen((e) {
+        print('begin pocket:');
+        print(e);
+        print('end pocket:');
+      });
+      connections.add(connection);
+    });*/
   }
 }
